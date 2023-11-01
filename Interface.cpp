@@ -219,7 +219,12 @@ void ImageSearchApp::resizeSpriteTo(sf::Sprite &sprite, float width, float heigh
 }
 
 int main() {
+    std::cout<<"main"<< std::endl;
     ImageSearchApp app;
+    std::cout << "main" << std::endl;
+
     app.run();
+    std::cout << "main" << std::endl;
+
     return 0;
 }

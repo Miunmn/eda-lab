@@ -50,8 +50,58 @@ size_t SsNode::minVarianceSplit(size_t coordinateIndex)
     return ans;
 }
 
-std::vector<string> SsTree::kNNQuery(const Point &center, size_t k) const
+std::vector<std::string> SsTree::kNNQuery(const Point &center, size_t k) const
 {
+    // Estructura de datos para almacenar los k vecinos más cercanos
+    std::priority_queue<Pair, std::vector<Pair>, Comparator> nearestNeighbors;
+
+    // Inicializa la cola de prioridad con los k primeros nodos (recorrido BFS)
+    std::queue<SsNode *> bfsQueue;
+    bfsQueue.push(root);
+
+    while (!bfsQueue.empty() && nearestNeighbors.size() < k)
+    {
+        SsNode *currentNode = bfsQueue.front();
+        bfsQueue.pop();
+
+        NType distance = ::distance(currentNode->centroid, center);
+        nearestNeighbors.push(Pair(currentNode->centroid, distance));
+
+        // Verifica si el nodo tiene hijos y agrégalos a la cola de prioridad
+        if (!currentNode->isLeaf())
+        {
+            SsInnerNode *innerNode = dynamic_cast<SsInnerNode *>(currentNode);
+            for (SsNode *child : innerNode->children)
+            {
+                NType childDistance = ::distance(child->centroid, center);
+                bfsQueue.push(child);
+
+                // Asegúrate de no agregar nodos fuera del rango de los k vecinos más cercanos
+                if (nearestNeighbors.size() < k || childDistance < nearestNeighbors.top().distance)
+                {
+                    nearestNeighbors.push(Pair(child->centroid, childDistance));
+                    // Si superamos k vecinos, elimina el más lejano
+                    if (nearestNeighbors.size() > k)
+                    {
+                        nearestNeighbors.pop();
+                    }
+                }
+            }
+        }
+    }
+
+    // Recopila los k vecinos más cercanos en una lista
+    std::vector<std::string> result;
+    while (!nearestNeighbors.empty())
+    {
+        result.push_back(nearestNeighbors.top().point.path);
+        nearestNeighbors.pop();
+    }
+
+    // Invierte la lista para que los vecinos más cercanos estén en el orden correcto
+    std::reverse(result.begin(), result.end());
+
+    return result;
 }
 
 size_t SsNode::directionOfMaxVariance() const
